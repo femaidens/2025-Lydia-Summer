@@ -24,8 +24,18 @@ public final class Constants {
 
     public class ElevatorPIDConstants {
       public static final double kP = 5.5;
-      public static final double kI = 0;
-      public static final double kD = 0;
+      public static final double kI = 0.0;
+      public static final double kD = 0.0;
+    }
+
+    public class ElevatorSetpointConstants {
+      public static final double CORAL_ONE = 0.0;
+      public static final double CORAL_TWO = 1.0;
+      public static final double CORAL_THREE = 2.0;
+      public static final double CORAL_FOUR = 3.0;
+      public static final double ALGAE_LOW = 1.5;
+      public static final double ALGAE_HIGH = 2.5;
+      public static final double ALGAE_BARGE = 5.0;
     }
   }
 

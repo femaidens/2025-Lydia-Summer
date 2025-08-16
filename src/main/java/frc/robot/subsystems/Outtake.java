@@ -35,6 +35,10 @@ public class Outtake extends SubsystemBase {
         return this.run(() -> outtakeMotor.set(0));
     }
 
+    public Command setVoltageCmd(double voltage) {
+        return this.run(() -> outtakeMotor.setVoltage(voltage));
+    }
+
     public boolean brokenFrontBB() {
         return !frontBB.get();
     }
