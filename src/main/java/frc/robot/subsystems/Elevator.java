@@ -6,12 +6,17 @@ import frc.robot.Constants.ElevatorConstants.ElevatorSetpointConstants;
 import frc.robot.Ports.ElevatorPorts;
 
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.servohub.ServoHub.ResetMode;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.motorcontrol.Spark;
@@ -21,6 +26,8 @@ public class Elevator extends SubsystemBase {
 
     private final SparkMax elevatorMotorLeader;
     private final SparkMax elevatorMotorFollower;
+    private final SparkMaxConfig leaderConfig;
+    private final SparkMaxConfig followerConfig;
     private final PIDController elevatorPID;
     private final DigitalInput limitSwitch;
     private final RelativeEncoder relativeEncoder;
@@ -30,8 +37,13 @@ public class Elevator extends SubsystemBase {
         elevatorMotorLeader = new SparkMax(ElevatorPorts.ELEVATOR_LEADER_MOTOR, MotorType.kBrushless);
         elevatorMotorFollower = new SparkMax(ElevatorPorts.ELEVATOR_FOLLOWER_MOTOR, MotorType.kBrushless);
 
-        elevatorMotorFollower.follow();
-        elevatorMotorFollower.setInverted(true);
+        leaderConfig = new SparkMaxConfig();
+        leaderConfig.idleMode(IdleMode.kBrake).smartCurrentLimit(ElevatorConstants.CURRENT_LIMIT).inverted(false);
+        followerConfig = new SparkMaxConfig();
+        followerConfig.idleMode(IdleMode.kBrake).smartCurrentLimit(ElevatorConstants.CURRENT_LIMIT).follow(elevatorMotorLeader, true);
+
+        elevatorMotorLeader.configure(leaderConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        elevatorMotorFollower.configure(followerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
        
         elevatorPID = new PIDController(ElevatorPIDConstants.kP, ElevatorPIDConstants.kI, ElevatorPIDConstants.kD);
         elevatorPID.setTolerance(0.1);
@@ -44,7 +56,7 @@ public class Elevator extends SubsystemBase {
     }
 
     public void elevatorPID(double current, double setpoint){
-        
+        elevatorMotorLeader.setVoltage(elevatorPID.calculate(current, setpoint));
     }
 
     public Command runElevatorMotorCmd() {

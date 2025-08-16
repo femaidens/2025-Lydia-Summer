@@ -21,6 +21,7 @@ public final class Constants {
   
   public static class ElevatorConstants {
     public static final double ELEVATOR_MOTOR_SPEED = 0.5;
+    public static final int CURRENT_LIMIT = 12;
 
     public class ElevatorPIDConstants {
       public static final double kP = 5.5;
