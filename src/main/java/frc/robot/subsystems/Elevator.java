@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.ElevatorConstants.ElevatorPIDConstants;
+import frc.robot.Constants.ElevatorConstants.ElevatorSetpointConstants;
 import frc.robot.Ports.ElevatorPorts;
 
 import com.revrobotics.spark.SparkMax;
@@ -26,16 +27,24 @@ public class Elevator extends SubsystemBase {
     private final AbsoluteEncoder absoluteEncoder;
 
     public Elevator() {
-        elevatorMotorLeader = new SparkMax(ElevatorPorts.ELEVATOR_MOTOR, MotorType.kBrushless);
-        elevatorMotorFollower = new SparkMax(ElevatorPorts.ELEVATOR_MOTOR, MotorType.kBrushless);
+        elevatorMotorLeader = new SparkMax(ElevatorPorts.ELEVATOR_LEADER_MOTOR, MotorType.kBrushless);
+        elevatorMotorFollower = new SparkMax(ElevatorPorts.ELEVATOR_FOLLOWER_MOTOR, MotorType.kBrushless);
+
+        elevatorMotorFollower.follow();
+        elevatorMotorFollower.setInverted(true);
        
         elevatorPID = new PIDController(ElevatorPIDConstants.kP, ElevatorPIDConstants.kI, ElevatorPIDConstants.kD);
+        elevatorPID.setTolerance(0.1);
 
         limitSwitch = new DigitalInput(ElevatorPorts.LIMIT_SWITCH);
 
         relativeEncoder = elevatorMotorLeader.getEncoder();
         absoluteEncoder = elevatorMotorLeader.getAbsoluteEncoder();
 
+    }
+
+    public void elevatorPID(double current, double setpoint){
+        
     }
 
     public Command runElevatorMotorCmd() {
@@ -47,7 +56,7 @@ public class Elevator extends SubsystemBase {
     }
 
     public Command stopElevatorMotorCmd() {
-        return this.run(() -> elevatorMotorLeader.set(0));
+        return this.runOnce(() -> elevatorMotorLeader.set(0));
     }
 
     public Command setVoltageCmd(double voltage) {
@@ -58,8 +67,20 @@ public class Elevator extends SubsystemBase {
         return this.runOnce(() -> relativeEncoder.setPosition(0));
     }
 
-    public Command setLevel() {
-        return
+    public Command setLevel(double setpoint) {
+        return this.run(() -> elevatorPID(relativeEncoder.getPosition(), setpoint));
+    }
+
+    public Command setDefaultLevel() {
+        return this.run(() -> {
+            if (hitLimitSwitch()) {
+                elevatorMotorLeader.stopMotor();
+                relativeEncoder.setPosition(0);
+            } else {
+                elevatorMotorLeader.set(-ElevatorConstants.ELEVATOR_MOTOR_SPEED);
+            }
+            
+        });
     }
 
     public double getPosition() {
